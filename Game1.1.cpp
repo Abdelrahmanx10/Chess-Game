@@ -1,4 +1,14 @@
 //Using SDL, SDL_image, standard IO, and strings
+#include"spot.h"
+#include"piece.h"
+#include"pawn.h"
+#include"knight.h"
+#include"bishop.h"
+#include"king.h"
+#include"queen.h"
+#include"board.h"
+#include"rook.h"
+using namespace std;
 #include <SDL.h>
 #include <SDL_image.h>
 #include <iostream>
@@ -158,6 +168,7 @@ int LTexture::getHeight()
 
 bool init()
 {
+	
 	//Initialization flag
 	bool success = true;
 
@@ -306,10 +317,28 @@ void close()
 	IMG_Quit();
 	SDL_Quit();
 }
+void domove( spot* start11, spot* end11) {
 
+
+	end11->set_piece(start11->get_piece());
+
+	start11->set_piece(0);
+
+};
 
 int main(int argc, char* args[])
 {
+	int mode = 0;
+	SDL_Event  e1;
+	SDL_PollEvent(&e1);
+	int row = 0; int colmn = 0;
+	int row2 = 0; int colmn2 = 0;
+	bool input = true;
+	bool output = true;
+	int row1 = 0; int colmn1 = 0;
+	game brd;
+	
+	brd.intialize();
 	//Start up SDL and create window
 	if (!init())
 	{
@@ -351,7 +380,7 @@ int main(int argc, char* args[])
 
 				SDL_SetRenderDrawColor(gRenderer, 150, 75, 0, 255);
 				SDL_RenderClear(gRenderer);
-
+				
 				for (int i = 0; i < 8; i++) {
 					for (int m = 7; m > -1; m--) {
 						//Render red filled quad
@@ -365,34 +394,117 @@ int main(int argc, char* args[])
 						SDL_RenderFillRect(gRenderer, &fillRect);
 					}
 				}
+			
+			
+				// i for columns j for rows
+				for (int i = 0; i < 8; i++) {
+					colmn = i;
+					for (int j = 0; j < 8; j++) {
+						row = abs(j - 7);
+						if (brd.getbox(i, j)->get_piece() != NULL) {
 
-				//Render Pieces to the screens
-				R.render(25, 25);
-				N.render(125, 25);
-				B.render(225, 25);
-				Q.render(325, 25);
-				K.render(425, 25);
-				B.render(525, 25);
-				N.render(625, 25);
-				R.render(725, 25);
-				for (int i =25; i <= 725;i += 100)
-				{
-					P.render(i, 125);
+							switch (brd.getbox(i, j)->get_piece()->get_type())
+							{
+							default:
+								break;
+							case 'r':
+							{
+								if (brd.getbox(i, j)->get_piece()->read_color() == 0)
+									r.render(colmn * 100 + 25, row * 100 + 25);
+								else if (brd.getbox(i, j)->get_piece()->read_color() == 1)
+									R.render(colmn * 100 + 25, row * 100 + 25);
+							}break;
+							case 'h':
+							{
+								if (brd.getbox(i, j)->get_piece()->read_color() == 0)
+									n.render(colmn * 100 + 25, row * 100 + 25);
+								else if (brd.getbox(i, j)->get_piece()->read_color() == 1)
+									N.render(colmn * 100 + 25, row * 100 + 25);
+							}break;
+							case 'q':
+							{
+								if (brd.getbox(i, j)->get_piece()->read_color() == 0)
+									q.render(colmn * 100 + 25, row * 100 + 25);
+								else if (brd.getbox(i, j)->get_piece()->read_color() == 1)
+									Q.render(colmn * 100 + 25, row * 100 + 25);
+							}break;
+							case 'k':
+							{
+								if (brd.getbox(i, j)->get_piece()->read_color() == 0)
+									k.render(colmn * 100 + 25, row * 100 + 25);
+								else if (brd.getbox(i, j)->get_piece()->read_color() == 1)
+									K.render(colmn * 100 + 25, row * 100 + 25);
+
+							}break;
+							case 'p':
+							{
+								if (brd.getbox(i, j)->get_piece()->read_color() == 0)
+									p.render(colmn * 100 + 25, row * 100 + 25);
+								else if (brd.getbox(i, j)->get_piece()->read_color() == 1)
+									P.render(colmn * 100 + 25, row * 100 + 25);
+							}break;
+							case 'b':
+							{
+								if (brd.getbox(i, j)->get_piece()->read_color() == 0)
+									b.render(colmn * 100 + 25, row * 100 + 25);
+								else if (brd.getbox(i, j)->get_piece()->read_color() == 1)
+									B.render(colmn * 100 + 25, row * 100 + 25);
+							}
+							break;
+							}
+						}
+					}
+				}SDL_RenderPresent(gRenderer);
+				if (brd.getturn() != 0) {
+					cout << "ENter mode"<<"\n" << " 1.redo "<<"\n"<<"2.proceed"<<"\n";
+					cin >> mode;
+				  }
+				if (mode == 1)
+					brd.redo();
+				else if (mode != 1) {
+					cout << "ENTER PIECE LOCATION" << "\n";
+					cin >> colmn >> row;
+					cout << "ENTER PIECE LOCATION" << "\n";
+					cin >> colmn1 >> row1;
+					
+					if (brd.logical_move(colmn, row, colmn1, row1) && brd.getbox(colmn, row) != NULL&& brd.getbox(colmn,row)->get_piece()->read_color()==brd.getplayer().getcolor())
+					{ 
+						
+						cout << "move accepted";
+						brd.domove(brd.getplayer().getcolor(), colmn, row, colmn1, row1);
+						
+					}
+					else {
+						cout << "try again" << "\n";
+					}
+
+					/*//Render Pieces to the screens
+					R.render(25, 25);
+					N.render(125, 25);
+					B.render(225, 25);
+					Q.render(325, 25);
+					K.render(425, 25);
+					B.render(525, 25);
+					N.render(625, 25);
+					R.render(725, 25);
+					for (int i =25; i <= 725;i += 100)
+					{
+						P.render(i, 125);
+					}
+					r.render(25, 725);
+					n.render(125, 725);
+					b.render(225, 725);
+					q.render(325, 725);
+					k.render(425, 725);
+					b.render(525, 725);
+					n.render(625, 725);
+					r.render(725, 725);
+					for (int i = 25; i <= 725;i += 100)
+					{
+						p.render(i, 625);
+					}*/
+					//Update screen
 				}
-				r.render(25, 725);
-				n.render(125, 725);
-				b.render(225, 725);
-				q.render(325, 725);
-				k.render(425, 725);
-				b.render(525, 725);
-				n.render(625, 725);
-				r.render(725, 725);
-				for (int i = 25; i <= 725;i += 100)
-				{
-					p.render(i, 625);
-				}
-				//Update screen
-				SDL_RenderPresent(gRenderer);
 			}
 		}
 	}

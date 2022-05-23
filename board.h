@@ -11,16 +11,12 @@
 #include"king.h"
 #include"pawn.h"
 enum gamestatus {
-	
 	ACTIVE,
 	BLACK_WIN,
 	WHITE_WIN,
 	FORFEIT,
 	STALEMATE,
 	RESIGNATION
-
-
-
 };
 class board {
 	spot* boxes[8][8];
@@ -47,22 +43,61 @@ class move {
 	spot* start;
 	spot* end;
 public:
-	move(int plyer, spot* start1, spot* end1);
+	void add_move(int plyer, spot* start1, spot* end1);
+	piece* getpiecemoved(){
+		return piece_moved;
+	}
+	piece* getpiecekilled(){
+		return piece_killed;
+	}
+	spot* getsource() {
+		return start;
+	}
+	spot* getdest() {
+		return end;
+	}
+	int getplayer() {
+		return player;
+	}
 };
-class storemove {
-	public:
-		move* mov;
-		storemove* next;
-};
+
+
+class list {
+	list* top;
+private:
+	move mov;
+		list* next;
+public:
+	list() { top = 0; };
+	void push(move mov);
+	bool is_empty() ;
+	move peek();
+	void pop();
+	}
+;
+
 class game {
 	player playr[2];
 	board bord;
 	int playerturn;
 	gamestatus status;
-	storemove mov;
+	list moves;
 public: 
 	void intialize();
-	void domove(player ply ,spot* start11, spot* end11);
-
+	bool logical_move(int x1,int y1, int x2,int y2);
+	void domove(int player,int x1, int y1, int x2, int y2);
+	spot* getbox(int x, int y);
+	int getturn() {
+		return playerturn;
+	}
+	player getplayer() {
+		if (playerturn % 2 == 0)
+			return playr[0];
+		else  {
+			return playr[1];
+		}
+	}
+	void domoveredo(int player, int x1, int y1, int x2, int y2);
+	void redo();
 };
 #endif // !BOARD_H

@@ -17,7 +17,7 @@ void board:: setboard()
 	boxes[2][0] = new spot(2, 0, new bishop(0,'b'));
 	boxes[3][0] = new spot(3, 0, new queen(0,'q'));
 	boxes[4][0] = new spot(4, 0, new king(0,'k'));
-	boxes[5][0] = new spot(5, 0, new bishop(0,'q'));
+	boxes[5][0] = new spot(5, 0, new bishop(0,'b'));
 	boxes[6][0] = new spot(6, 0, new knight(0,'h'));
 	boxes[7][0] = new spot(7, 0, new rook(0,'r'));
 	boxes[0][1] = new spot(0, 1, new pawn(0,'p'));
@@ -26,6 +26,7 @@ void board:: setboard()
 	boxes[3][1] = new spot(3, 1, new pawn(0, 'p'));
 	boxes[4][1] = new spot(4, 1, new pawn(0, 'p'));
 	boxes[5][1] = new spot(5, 1, new pawn(0, 'p'));
+	boxes[6][1] = new spot(6, 1, new pawn(0, 'p'));
 	boxes[7][1] = new spot(7, 1, new pawn(0, 'p'));
 	//////black setting
 	boxes[0][7] = new spot(0, 7, new rook(1,'r'));
@@ -48,7 +49,6 @@ void board:: setboard()
 	for(int i=2;i<6;i++)
 		for(int m=0;m<8;m++)
 			boxes[m][i] = new spot(m, i, 0);
-
 }
 
 int player::getcolor() {
@@ -58,39 +58,81 @@ void player::setcolor(int col) {
 	color = col;
 }
 
-move::move(int plyer, spot* start1, spot* end1) {
+void move::add_move(int plyer, spot* start1, spot* end1) {
 	player = plyer;
-	piece_moved = start->get_piece();
-	piece_killed = end->get_piece();
+	piece_moved = start1->get_piece();
+	piece_killed = end1->get_piece();
 	start = start1;
 	end = end1;
 }
 
-
-
 void game::intialize() {
+	moves;
 	playr[0].setcolor(0);
 	playr[1].setcolor(1);
-
+	playerturn = 0;
 	bord.setboard();
 	}
-	void game:: domove(player ply, spot*start11,spot*end11){
-		
-
-		end11->set_piece(start11->get_piece());
-
-		start11->set_piece(0);
-
+bool game::logical_move(int x1, int y1, int x2, int y2) {
+	bool cond;
+	spot start = *bord.getbox(x1, y1);
+	spot end = *bord.getbox(x2, y2);
+	cond = bord.getbox(x1, y1)->get_piece()->can_move(bord, start,end);
+	return cond;
+}
+	void game:: domove(int player,int x1, int y1, int x2, int y2){
+		move mov1;
+		mov1.add_move(player, bord.getbox(x1, y1), bord.getbox(x2, y2));
+		moves.push(mov1);
+		bord.getbox(x2,y2)->set_piece(bord.getbox(x1, y1)->get_piece());
+		bord.getbox(x1, y1)->set_piece(0);
+		playerturn++;
     };
+	
+	void game::domoveredo(int player, int x1, int y1, int x2, int y2) {
+		//move mov1;
+		//ov1.add_move(player, bord.getbox(x1, y1), bord.getbox(x2, y2));
+		//moves.push(mov1);
+		bord.getbox(x2, y2)->set_piece(bord.getbox(x1, y1)->get_piece());
+		bord.getbox(x1, y1)->set_piece(0);
+		//playerturn++;
+	};
+	void list::push(move mov) {
+		
+		list* temp = new list();
+		temp->mov = mov;
+		temp->next = top;
+		top = temp;
 
+	}
+	move list::peek() {
 
+		return top->mov;
 
+	}
+	void list::pop() {
+		
+			list* temp;
+			temp = top;
+		
+			top = top->next;
+			
+			delete(temp);
 
+		
+	}
+	bool list::is_empty() {
+		return(top == 0);
+	}
+	spot* game::getbox(int x, int y) {
+		return bord.getbox(x,y);
+	};
+	void game::redo() {
+		move lastmove = moves.peek();
 
+		domoveredo(lastmove.getplayer(), lastmove.getdest()->get_x(), lastmove.getdest()->get_y(), lastmove.getsource()->get_x(), lastmove.getsource()->get_y());
 
-
-
-
-
-
-
+		bord.getbox(lastmove.getdest()->get_x(), lastmove.getdest()->get_y())->set_piece(lastmove.getpiecekilled());
+		moves.pop();
+		playerturn--;
+	}
